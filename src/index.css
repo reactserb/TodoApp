@@ -3,8 +3,8 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
-	--color-btn-dark: #00008b;
-	--color-btn-dark-hv: #0000cd;
+	--color-btn-dark: #46535c;
+	--color-btn-dark-hv: #6d8291;
 	--color-btn-light: #87ceeb;
 	--color-btn-light-hv: #add8e6;
 	--color-txt-dark: #dedede;
