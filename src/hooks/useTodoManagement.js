@@ -14,7 +14,10 @@ const useTodoManagement = () => {
 				const response = await fetch(API_URL)
 				if (response.ok) {
 					const serverTodos = await response.json()
-					setTodos(serverTodos)
+					const sortedServerTodos = [...serverTodos].sort(
+						(a, b) => a.order - b.order
+					)
+					setTodos(sortedServerTodos)
 
 					localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(serverTodos))
 				}
@@ -174,6 +177,45 @@ const useTodoManagement = () => {
 		setIsDeletingCompleted(false)
 	}
 
+	const onReorder = async (activeId, overId) => {
+		if (!overId) return
+
+		try {
+			const activeIndex = todos.findIndex(t => t.id === activeId)
+			const overIndex = todos.findIndex(t => t.id === overId)
+
+			if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex)
+				return
+
+			const newTodos = [...todos]
+			const [movedTodo] = newTodos.splice(activeIndex, 1)
+			newTodos.splice(overIndex, 0, movedTodo)
+
+			const updatedTodos = newTodos.map((todo, index) => ({
+				...todo,
+				order: index + 1,
+			}))
+
+			setTodos(updatedTodos)
+
+			for (const todo of updatedTodos) {
+				try {
+					await fetch(`${API_URL}/${todo.id}`, {
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ order: todo.order }),
+					})
+				} catch (error) {
+					console.error(`Error updated ${todo.id}`, error)
+				}
+			}
+			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos))
+		} catch (err) {
+			console.error('Error change index', err)
+			setTodos(todos)
+		}
+	}
+
 	return {
 		todos,
 		setTodos,
@@ -188,6 +230,7 @@ const useTodoManagement = () => {
 		setIsDeletingCompleted,
 		deletingId,
 		setDeletingId,
+		onReorder,
 	}
 }
 

@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import CheckboxButton from './CheckboxButton'
 import TodoEditForm from './TodoEditForm'
 import TodoTextDisplay from './TodoTextDisplay'
 import DeleteButton from './DeleteButton'
+import { useSortable } from '@dnd-kit/sortable'
+import { GoGrabber } from 'react-icons/go'
 
 export default function TodoItem({
 	todo,
@@ -14,6 +16,24 @@ export default function TodoItem({
 	const [editText, setEditText] = useState(todo.text)
 	const [editDeadline, setEditDeadline] = useState(todo.deadline || '')
 	const editFormRef = useRef(null)
+
+	const {
+		setNodeRef,
+		attributes,
+		listeners,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: todo.id })
+
+	const style = {
+		transform: transform
+			? `translate(${transform.x}px, ${transform.y}px)`
+			: undefined,
+		transition,
+		zIndedx: isDragging ? 1 : 'auto',
+		opacity: isDragging ? 0.7 : 1,
+	}
 
 	const handleSave = useCallback(() => {
 		if (editText.trim()) {
@@ -37,8 +57,19 @@ export default function TodoItem({
 	}, [isEditing, handleSave])
 
 	return (
-		<div className='group flex items-center justify-between p-4 gap-3 bg-white dark:bg-page-dark rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100'>
+		<div
+			ref={setNodeRef}
+			{...attributes}
+			style={style}
+			className='group flex justify-between items-center p-4 gap-3 bg-white dark:bg-page-dark rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100'
+		>
 			<div className='flex items-center gap-3'>
+				<div
+					{...listeners}
+					className='cursor-grab active:cursor-grabbing text-4xl dark:text-txt-dark'
+				>
+					<GoGrabber />
+				</div>
 				<CheckboxButton
 					todo={todo}
 					handleToggleComplete={handleToggleComplete}

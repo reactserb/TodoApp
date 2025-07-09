@@ -23,6 +23,7 @@ export default function App() {
 		setIsDeletingCompleted,
 		deletingId,
 		setDeletingId,
+		onReorder,
 	} = useTodoManagement()
 
 	return (
@@ -37,6 +38,7 @@ export default function App() {
 				handleToggleComplete={handleToggleComplete}
 				handleUpdate={handleUpdate}
 				setDeletingId={setDeletingId}
+				onReorder={onReorder}
 			/>
 			{deletingId && (
 				<DeleteModal

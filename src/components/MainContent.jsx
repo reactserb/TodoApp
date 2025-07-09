@@ -10,6 +10,7 @@ export default function MainContent({
 	handleToggleComplete,
 	handleUpdate,
 	setDeletingId,
+	onReorder,
 }) {
 	const [filter, setFilter] = useState('all')
 
@@ -29,6 +30,7 @@ export default function MainContent({
 				handleToggleComplete={handleToggleComplete}
 				handleUpdate={handleUpdate}
 				setDeletingId={setDeletingId}
+				onReorder={onReorder}
 			/>
 		</div>
 	)
