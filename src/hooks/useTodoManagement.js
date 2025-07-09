@@ -1,26 +1,29 @@
 import { useState, useEffect } from 'react'
-
-const LOCAL_STORAGE_KEY = 'todos'
-const API_URL = 'https://67fe07ca3da09811b1774cfc.mockapi.io/users'
+import { useLocalStorage } from './useLocalStorage'
+import { useTodoActions } from './useTodoActions'
+import { useApi } from './useApi'
+import { useTodoHelpers } from './useTodoHelpers'
 
 const useTodoManagement = () => {
 	const [todos, setTodos] = useState([])
 	const [deletingId, setDeletingId] = useState(null)
 	const [isDeletingCompleted, setIsDeletingCompleted] = useState(false)
 
+	const { saveToLocalStorage, loadFromLocalStorage } = useLocalStorage()
+	const { fetchTodos, updateFetchTodo, removeTodo, createTodo } = useApi()
+	const { createNewTodo, updateTodo, updateToggleComplete, sortedTodos } =
+		useTodoHelpers()
+
 	useEffect(() => {
 		const loadInitialData = async () => {
+			const sortedSavedTodos = sortedTodos(loadFromLocalStorage())
+			setTodos(sortedSavedTodos)
 			try {
-				const response = await fetch(API_URL)
-				if (response.ok) {
-					const serverTodos = await response.json()
-					const sortedServerTodos = [...serverTodos].sort(
-						(a, b) => a.order - b.order
-					)
-					setTodos(sortedServerTodos)
+				const serverTodos = await fetchTodos()
+				const sortedServerTodos = sortedTodos(serverTodos)
+				setTodos(sortedServerTodos)
 
-					localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(serverTodos))
-				}
+				saveToLocalStorage(sortedServerTodos)
 			} catch (err) {
 				console.error('Failed to fetch', err)
 			}
@@ -29,208 +32,27 @@ const useTodoManagement = () => {
 		loadInitialData()
 	}, [])
 
-	const handleAdd = async (text, deadline) => {
-		const newTodo = {
-			id: Date.now(),
-			text,
-			completed: false,
-			createdAt: new Date().toISOString(),
-			deadline: deadline || null,
-			order: todos.length + 1,
-		}
-
-		const updatedTodos = [...todos, newTodo]
-		setTodos(updatedTodos)
-		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos))
-
-		try {
-			const response = await fetch(API_URL, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(newTodo),
-			})
-
-			const createdTodo = await response.json()
-			const syncedTodos = updatedTodos.map(todo =>
-				todo.id === newTodo.id ? createdTodo : todo
-			)
-
-			setTodos(syncedTodos)
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(syncedTodos))
-		} catch (err) {
-			console.error('Error to add:', err)
-			setTodos(todos)
-		}
-	}
-
-	const handleUpdate = async (id, newText, newDeadline) => {
-		const todoToUpddate = todos.find(todo => todo.id === id)
-
-		if (!todoToUpddate) return
-
-		const updatedTodo = {
-			...todoToUpddate,
-			text: newText,
-			deadline: newDeadline,
-		}
-
-		const updatedTodos = todos.map(todo =>
-			todo.id === id ? updatedTodo : todo
-		)
-		setTodos(updatedTodos)
-
-		try {
-			await fetch(`${API_URL}/${id}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(updatedTodo),
-			})
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos))
-		} catch (err) {
-			console.log('Error toggle complete', err)
-			setTodos(todos)
-		}
-	}
-
-	const handleToggleComplete = async id => {
-		const todoUpdate = todos.find(todo => todo.id === id)
-		if (!todoUpdate) return
-
-		const updatedTodo = {
-			...todoUpdate,
-			completed: !todoUpdate.completed,
-		}
-
-		const updatedTodos = todos.map(todo =>
-			todo.id === id ? updatedTodo : todo
-		)
-		setTodos(updatedTodos)
-
-		try {
-			await fetch(`${API_URL}/${id}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(updatedTodo),
-			})
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos))
-		} catch (err) {
-			console.log('Error toggle complete', err)
-			setTodos(todos)
-		}
-	}
-
-	const handleDelete = async id => {
-		const previousTodos = todos
-		const updatedTodos = todos.filter(todo => todo.id !== id)
-		setTodos(updatedTodos)
-
-		try {
-			await fetch(`${API_URL}/${id}`, {
-				method: 'DELETE',
-			})
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos))
-		} catch (err) {
-			console.error('Error delete', err)
-			setTodos(previousTodos)
-		}
-	}
-
-	const hasCompletedTodos = todos.some(todo => todo.completed)
-
-	const handleDeleteCompletedTodos = () => {
-		if (!hasCompletedTodos) return
-
-		setIsDeletingCompleted(true)
-	}
-
-	const confirmDeleteCompleted = async () => {
-		const originalTodos = [...todos]
-
-		const completedIds = originalTodos.filter(t => t.completed).map(t => t.id)
-
-		setTodos(originalTodos.filter(todo => !todo.completed))
-
-		const failedIds = []
-
-		for (const id of completedIds) {
-			try {
-				await fetch(`${API_URL}/${id}`, {
-					method: 'DELETE',
-				})
-			} catch (err) {
-				console.error(`Error delete ${id}`, err)
-				failedIds.push(id)
-			}
-		}
-
-		if (failedIds.length > 0) {
-			setTodos(
-				originalTodos.filter(
-					todo => !todo.completed || failedIds.includes(todo.id)
-				)
-			)
-		}
-
-		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
-		setIsDeletingCompleted(false)
-	}
-
-	const onReorder = async (activeId, overId) => {
-		if (!overId) return
-
-		try {
-			const activeIndex = todos.findIndex(t => t.id === activeId)
-			const overIndex = todos.findIndex(t => t.id === overId)
-
-			if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex)
-				return
-
-			const newTodos = [...todos]
-			const [movedTodo] = newTodos.splice(activeIndex, 1)
-			newTodos.splice(overIndex, 0, movedTodo)
-
-			const updatedTodos = newTodos.map((todo, index) => ({
-				...todo,
-				order: index + 1,
-			}))
-
-			setTodos(updatedTodos)
-
-			for (const todo of updatedTodos) {
-				try {
-					await fetch(`${API_URL}/${todo.id}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ order: todo.order }),
-					})
-				} catch (error) {
-					console.error(`Error updated ${todo.id}`, error)
-				}
-			}
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos))
-		} catch (err) {
-			console.error('Error change index', err)
-			setTodos(todos)
-		}
-	}
+	const actions = useTodoActions({
+		todos,
+		setTodos,
+		createNewTodo,
+		createTodo,
+		saveToLocalStorage,
+		removeTodo,
+		updateTodo,
+		updateFetchTodo,
+		updateToggleComplete,
+		setIsDeletingCompleted,
+	})
 
 	return {
 		todos,
 		setTodos,
-		handleAdd,
-		handleUpdate,
-		handleToggleComplete,
-		handleDelete,
-		handleDeleteCompletedTodos,
-		confirmDeleteCompleted,
-		hasCompletedTodos,
 		isDeletingCompleted,
 		setIsDeletingCompleted,
 		deletingId,
 		setDeletingId,
-		onReorder,
+		...actions,
 	}
 }
 
