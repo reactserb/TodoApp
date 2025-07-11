@@ -106,16 +106,18 @@ export default function AddTodo({ handleAdd }) {
 		e.preventDefault()
 		if (text.trim()) {
 			handleAdd(text, deadline)
+			setDeadline('')
+			setShowDeadline(false)
+			setText('')
+			finalTextRef.current = ''
+		} else {
+			alert('Enter the task text')
 		}
-		setDeadline('')
-		setShowDeadline(false)
-		setText('')
-		finalTextRef.current = ''
 	}
 
 	return (
 		<form onSubmit={handleSubmit} className='mb-6'>
-			<div className='flex items-center mb-2 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100  focus-within:ring-2 focus-within:ring-blue-500'>
+			<div className='flex items-center mb-2 mr-5 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100  focus-within:ring-2 focus-within:ring-blue-500'>
 				<input
 					ref={inputRef}
 					value={text}

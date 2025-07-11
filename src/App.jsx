@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import ToggleTheme from './components/ToggleTheme'
 import getInitialTheme from './helpers/getInitialTheme'
 import toggleTheme from './helpers/toggleTheme'
 import DeleteModal from './components/DeleteModal'
 import useTodoManagement from './hooks/useTodoManagement'
 import DeleteCompletedButton from './components/DeleteCompletedButton'
-import MainContent from './components/MainContent'
+import Loader from './components/Loader'
+
+const MainContent = lazy(() => import('./components/MainContent'))
 
 export default function App() {
 	const [theme, setTheme] = useState(getInitialTheme())
@@ -32,14 +34,16 @@ export default function App() {
 			className='flex flex-col min-h-screen justify-center items-center bg-page-light dark:bg-page-dark p-6'
 		>
 			<ToggleTheme toggleTheme={() => toggleTheme(setTheme)} theme={theme} />
-			<MainContent
-				todos={todos}
-				handleAdd={handleAdd}
-				handleToggleComplete={handleToggleComplete}
-				handleUpdate={handleUpdate}
-				setDeletingId={setDeletingId}
-				onReorder={onReorder}
-			/>
+			<Suspense fallback={<Loader />}>
+				<MainContent
+					todos={todos}
+					handleAdd={handleAdd}
+					handleToggleComplete={handleToggleComplete}
+					handleUpdate={handleUpdate}
+					setDeletingId={setDeletingId}
+					onReorder={onReorder}
+				/>
+			</Suspense>
 			{deletingId && (
 				<DeleteModal
 					onCancel={() => setDeletingId(null)}
