@@ -30,7 +30,7 @@ export default function DeadlineBlock({
 				<button
 					type='button'
 					onClick={() => setShowDeadline(true)}
-					className='seld-start text-sm text-green-500 hover:text-green-700'
+					className='self-start text-sm text-green-500 hover:text-green-700'
 				>
 					+ Add deadline
 				</button>
