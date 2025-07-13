@@ -20,7 +20,7 @@ export default function TodoEditForm({
 
 			<div className='flex flex-col sm:flex-row gap-2 w-full'>
 				<input
-					className='w-full px-2 py-1 border-2 border-blue-500 rounded text-sm text-gray-700 dark:text-gray-300'
+					className='w-full sm:flex-1  px-2 py-1 border-2 border-blue-500 rounded text-sm text-gray-700 dark:text-gray-300'
 					type='datetime-local'
 					value={editDeadline}
 					onChange={e => setEditDeadline(e.target.value)}

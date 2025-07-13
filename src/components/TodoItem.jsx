@@ -63,29 +63,31 @@ export default function TodoItem({
 			style={style}
 			className='group flex justify-between items-center p-4 mr-5 gap-3 bg-white dark:bg-page-dark rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100'
 		>
-			<div className='flex items-center gap-3'>
+			<div className='flex flex-row items-center gap-2'>
 				<div
 					{...listeners}
 					className='cursor-grab active:cursor-grabbing text-4xl dark:text-txt-dark'
 				>
 					<GoGrabber />
 				</div>
-				<CheckboxButton
-					todo={todo}
-					handleToggleComplete={handleToggleComplete}
-				/>
-				{isEditing ? (
-					<TodoEditForm
-						editFormRef={editFormRef}
-						editText={editText}
-						setEditText={setEditText}
-						handleSave={handleSave}
-						editDeadline={editDeadline}
-						setEditDeadline={setEditDeadline}
+				<div className='flex items-center gap-3'>
+					<CheckboxButton
+						todo={todo}
+						handleToggleComplete={handleToggleComplete}
 					/>
-				) : (
-					<TodoTextDisplay setIsEditing={setIsEditing} todo={todo} />
-				)}
+					{isEditing ? (
+						<TodoEditForm
+							editFormRef={editFormRef}
+							editText={editText}
+							setEditText={setEditText}
+							handleSave={handleSave}
+							editDeadline={editDeadline}
+							setEditDeadline={setEditDeadline}
+						/>
+					) : (
+						<TodoTextDisplay setIsEditing={setIsEditing} todo={todo} />
+					)}
+				</div>
 			</div>
 			<DeleteButton onDelete={onDelete} />
 		</div>

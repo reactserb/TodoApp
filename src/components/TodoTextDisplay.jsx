@@ -7,7 +7,7 @@ export default function TodoTextDisplay({ setIsEditing, todo }) {
 			onDoubleClick={() => setIsEditing(true)}
 		>
 			<span
-				className={`text-1 ${
+				className={`text-1 break-all ${
 					todo.completed
 						? 'line-through text-gray-400'
 						: 'text-gray-700 dark:text-gray-300'
@@ -16,12 +16,12 @@ export default function TodoTextDisplay({ setIsEditing, todo }) {
 				{todo.text}
 			</span>
 
-			<span className='text-xs text-gray-400'>
+			<span className='text-xs break-all text-gray-400'>
 				Created: {formatDateTime(todo.createdAt)}
 			</span>
 			{todo.deadline && (
 				<span
-					className={`text-xs ${
+					className={`text-xs break-all ${
 						todo.completed
 							? 'text-gray-500'
 							: new Date(todo.deadline) < new Date()
