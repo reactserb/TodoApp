@@ -34,8 +34,11 @@ export default function App() {
 			className='flex flex-col min-h-screen justify-center items-center bg-page-light dark:bg-page-dark p-6'
 		>
 			<div className='w-full max-w-xl mx-auto flex flex-col items-center'>
-				<ToggleTheme toggleTheme={() => toggleTheme(setTheme)} theme={theme} />
 				<Suspense fallback={<Loader />}>
+					<ToggleTheme
+						toggleTheme={() => toggleTheme(setTheme)}
+						theme={theme}
+					/>
 					<MainContent
 						todos={todos}
 						handleAdd={handleAdd}

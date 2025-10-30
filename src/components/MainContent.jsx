@@ -24,7 +24,9 @@ export default function MainContent({
 		<div className='mx-auto flex flex-col gap-3 w-full max-w-lg'>
 			<Header />
 			<AddTodo handleAdd={handleAdd} />
-			<TodoFilter filter={filter} setFilter={setFilter} />
+			{todos.length !== 0 && (
+				<TodoFilter filter={filter} setFilter={setFilter} />
+			)}
 			<TodoList
 				todos={filteredTodos}
 				handleToggleComplete={handleToggleComplete}
