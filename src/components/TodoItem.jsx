@@ -61,7 +61,7 @@ export default function TodoItem({
 			ref={setNodeRef}
 			{...attributes}
 			style={style}
-			className='group flex justify-between items-center p-4 mr-5 gap-3 bg-white dark:bg-page-dark rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100'
+			className='group flex justify-between items-center p-4 gap-3 bg-white dark:bg-page-dark rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100'
 		>
 			<div className='flex flex-row items-center gap-2'>
 				<div

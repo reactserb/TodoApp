@@ -21,7 +21,7 @@ export default function MainContent({
 	})
 
 	return (
-		<div className='mx-auto flex flex-col gap-3'>
+		<div className='mx-auto flex flex-col gap-3 w-full max-w-lg'>
 			<Header />
 			<AddTodo handleAdd={handleAdd} />
 			<TodoFilter filter={filter} setFilter={setFilter} />

@@ -33,41 +33,43 @@ export default function App() {
 			data-theme={theme}
 			className='flex flex-col min-h-screen justify-center items-center bg-page-light dark:bg-page-dark p-6'
 		>
-			<ToggleTheme toggleTheme={() => toggleTheme(setTheme)} theme={theme} />
-			<Suspense fallback={<Loader />}>
-				<MainContent
-					todos={todos}
-					handleAdd={handleAdd}
-					handleToggleComplete={handleToggleComplete}
-					handleUpdate={handleUpdate}
-					setDeletingId={setDeletingId}
-					onReorder={onReorder}
-				/>
-			</Suspense>
-			{deletingId && (
-				<DeleteModal
-					onCancel={() => setDeletingId(null)}
-					onConfirm={() => {
-						handleDelete(deletingId)
-						setDeletingId(null)
-					}}
-					message='Are you sure you want to delete this todo?'
-				/>
-			)}
-			{isDeletingCompleted && (
-				<DeleteModal
-					onCancel={() => setIsDeletingCompleted(false)}
-					onConfirm={confirmDeleteCompleted}
-					message={`Are you sure you want to delete completed todos (${
-						todos.filter(todo => todo.completed).length
-					})?`}
-				/>
-			)}
-			{hasCompletedTodos && (
-				<DeleteCompletedButton
-					handleDeleteCompletedTodos={handleDeleteCompletedTodos}
-				/>
-			)}
+			<div className='w-full max-w-xl mx-auto flex flex-col items-center'>
+				<ToggleTheme toggleTheme={() => toggleTheme(setTheme)} theme={theme} />
+				<Suspense fallback={<Loader />}>
+					<MainContent
+						todos={todos}
+						handleAdd={handleAdd}
+						handleToggleComplete={handleToggleComplete}
+						handleUpdate={handleUpdate}
+						setDeletingId={setDeletingId}
+						onReorder={onReorder}
+					/>
+				</Suspense>
+				{deletingId && (
+					<DeleteModal
+						onCancel={() => setDeletingId(null)}
+						onConfirm={() => {
+							handleDelete(deletingId)
+							setDeletingId(null)
+						}}
+						message='Are you sure you want to delete this todo?'
+					/>
+				)}
+				{isDeletingCompleted && (
+					<DeleteModal
+						onCancel={() => setIsDeletingCompleted(false)}
+						onConfirm={confirmDeleteCompleted}
+						message={`Are you sure you want to delete completed todos (${
+							todos.filter(todo => todo.completed).length
+						})?`}
+					/>
+				)}
+				{hasCompletedTodos && (
+					<DeleteCompletedButton
+						handleDeleteCompletedTodos={handleDeleteCompletedTodos}
+					/>
+				)}
+			</div>
 		</div>
 	)
 }
