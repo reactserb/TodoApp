@@ -7,8 +7,6 @@ export default function AddTodo({ handleAdd }) {
 	const [deadline, setDeadline] = useState('')
 	const [showDeadline, setShowDeadline] = useState(false)
 	const [isListening, setIsListening] = useState(false)
-	// const [recognition, setRecognition] = useState(null)
-	const finalTextRef = useRef('')
 	const inputRef = useRef(null)
 
 	const moveCursorToEnd = () => {
@@ -22,13 +20,13 @@ export default function AddTodo({ handleAdd }) {
 
 	const stopListening = () => {
 		setIsListening(false)
-		setText(finalTextRef.current)
+		setText(inputRef.current.value)
 		moveCursorToEnd()
 	}
 
 	const startListening = () => {
 		if (inputRef.current.value) {
-			finalTextRef.current = ''
+			setText('')
 		}
 		setIsListening(true)
 	}
@@ -45,62 +43,48 @@ export default function AddTodo({ handleAdd }) {
 		const SpeechRecognition =
 			window.SpeechRecognition || window.webkitSpeechRecognition
 
-		// Если API не поддерживается, выходим и, возможно, скрываем кнопку
 		if (!SpeechRecognition) {
 			console.warn('Speech Recognition API not supported in this browser.')
-			// Можете добавить useState(false) для кнопки микрофона и скрыть ее здесь
 			return
 		}
 
 		const recognitionInstance = new SpeechRecognition()
 		recognitionInstance.continuous = true
 		recognitionInstance.lang = 'ru-RU'
-		recognitionInstance.interimResults = true
+		recognitionInstance.interimResults = true // Нужны промежуточные результаты для плавного ввода
 
 		recognitionInstance.onresult = e => {
-			let finalTranscript = ''
-			let interimScript = ''
+			// !!! ИСПРАВЛЕННАЯ ЛОГИКА ОБРАБОТКИ РЕЗУЛЬТАТОВ !!!
 
-			for (let i = e.resultIndex; i < e.results.length; i++) {
-				const transcript = e.results[i][0].transcript
-				if (e.results[i].isFinal) {
-					finalTranscript += transcript
-				} else {
-					interimScript += transcript
-				}
+			let fullTranscript = ''
+
+			// Проходим по всем результатам от начала до конца
+			for (let i = 0; i < e.results.length; i++) {
+				// Добавляем транскрипт текущего результата к полной строке
+				fullTranscript += e.results[i][0].transcript
 			}
 
-			if (finalTranscript) {
-				// Улучшенная обработка пробелов
-				finalTextRef.current = (
-					finalTextRef.current +
-					' ' +
-					finalTranscript
-				).trim()
-				setText(finalTextRef.current)
-			} else if (interimScript) {
-				// Обновляем UI с промежуточным результатом, сохраняя финальный в ref
-				setText((finalTextRef.current + ' ' + interimScript).trim())
-			}
+			// Всегда устанавливаем UI в полный транскрипт.
+			// Мы не используем ref для хранения "финального" текста,
+			// потому что на мобильных onresult может содержать все финальные результаты.
+			setText(fullTranscript.trim())
+
 			moveCursorToEnd()
 		}
 
 		recognitionInstance.onerror = e => {
 			console.error('Recognize Error:', e.error)
-			// Если произошла ошибка, убедитесь, что isListening выключено
 			setIsListening(false)
 		}
 
-		// Запускаем или останавливаем инстанс в зависимости от isListening
+		recognitionInstance.onend = () => {}
+
 		if (isListening) {
 			recognitionInstance.start()
 		} else {
-			// Если isListening false, останавливаем, если он уже запущен
-			// (onend вызовется автоматически, но мы его не перехватываем для перезапуска тут)
 			recognitionInstance.stop()
 		}
 
-		// КОРРЕКТНАЯ ОЧИСТКА ЭФФЕКТА
 		return () => {
 			recognitionInstance.stop()
 		}
@@ -113,7 +97,6 @@ export default function AddTodo({ handleAdd }) {
 			setDeadline('')
 			setShowDeadline(false)
 			setText('')
-			finalTextRef.current = ''
 		} else {
 			alert('Enter the task text')
 		}
@@ -155,6 +138,7 @@ export default function AddTodo({ handleAdd }) {
 					</button>
 				</div>
 			</div>
+
 			<DeadlineBlock
 				showDeadline={showDeadline}
 				deadline={deadline}
