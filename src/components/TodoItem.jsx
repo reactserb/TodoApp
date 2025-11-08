@@ -5,6 +5,7 @@ import TodoTextDisplay from './TodoTextDisplay'
 import DeleteButton from './DeleteButton'
 import { useSortable } from '@dnd-kit/sortable'
 import { GoGrabber } from 'react-icons/go'
+import { FaEdit } from 'react-icons/fa'
 
 export default function TodoItem({
 	todo,
@@ -16,6 +17,7 @@ export default function TodoItem({
 	const [editText, setEditText] = useState(todo.text)
 	const [editDeadline, setEditDeadline] = useState(todo.deadline || '')
 	const editFormRef = useRef(null)
+	const editButtonRef = useRef(null)
 
 	const {
 		setNodeRef,
@@ -44,7 +46,12 @@ export default function TodoItem({
 
 	useEffect(() => {
 		const handleClickOutside = e => {
-			if (editFormRef.current && !editFormRef.current.contains(e.target)) {
+			if (
+				editFormRef.current &&
+				!editFormRef.current.contains(e.target) &&
+				editButtonRef.current &&
+				!editButtonRef.current.contains(e.target)
+			) {
 				handleSave()
 			}
 		}
@@ -63,7 +70,7 @@ export default function TodoItem({
 			style={style}
 			className='group flex justify-between items-center p-4 gap-3 bg-white dark:bg-page-dark rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100'
 		>
-			<div className='flex flex-row items-center gap-2'>
+			<div className='flex flex-row items-center gap-2 flex-grow'>
 				<div
 					{...listeners}
 					className='cursor-grab active:cursor-grabbing text-4xl dark:text-txt-dark'
@@ -85,10 +92,20 @@ export default function TodoItem({
 							setEditDeadline={setEditDeadline}
 						/>
 					) : (
-						<TodoTextDisplay setIsEditing={setIsEditing} todo={todo} />
+						<TodoTextDisplay todo={todo} />
 					)}
 				</div>
 			</div>
+			{!isEditing && !todo.completed && (
+				<button
+					ref={editButtonRef}
+					onClick={() => setIsEditing(true)}
+					className='p-2 text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0'
+					title='Edit task'
+				>
+					<FaEdit />
+				</button>
+			)}
 			<DeleteButton onDelete={onDelete} />
 		</div>
 	)

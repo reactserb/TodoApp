@@ -9,6 +9,7 @@ export const useTodoActions = ({
 	updateFetchTodo,
 	updateToggleComplete,
 	setIsDeletingCompleted,
+	setCompletedCount,
 }) => {
 	const handleAdd = async (text, deadline) => {
 		const newTodo = createNewTodo(text, deadline, todos.length + 1)
@@ -91,6 +92,8 @@ export const useTodoActions = ({
 	const handleDeleteCompletedTodos = () => {
 		if (!hasCompletedTodos) return
 
+		const count = todos.filter(todo => todo.completed).length
+		setCompletedCount(count) // <-- Устанавливаем количество перед открытием модалки
 		setIsDeletingCompleted(true)
 	}
 
@@ -100,6 +103,11 @@ export const useTodoActions = ({
 		const completedIds = originalTodos.filter(t => t.completed).map(t => t.id)
 
 		setTodos(originalTodos.filter(todo => !todo.completed))
+
+		saveToLocalStorage(originalTodos.filter(todo => !todo.completed))
+
+		setIsDeletingCompleted(false)
+		setCompletedCount(0)
 
 		const failedIds = []
 
@@ -111,17 +119,18 @@ export const useTodoActions = ({
 				failedIds.push(id)
 			}
 		}
-
 		if (failedIds.length > 0) {
-			setTodos(
-				originalTodos.filter(
-					todo => !todo.completed || failedIds.includes(todo.id)
-				)
-			)
-		}
+			// Получаем полные данные о задачах, которые не удалось удалить с сервера
+			const failedTodos = originalTodos.filter(t => failedIds.includes(t.id))
 
-		saveToLocalStorage(todos)
-		setIsDeletingCompleted(false)
+			// Восстанавливаем их в UI (пользователь увидит их снова через секунду)
+			setTodos(prevTodos => {
+				const restoredTodos = [...prevTodos, ...failedTodos]
+				// Также обновляем localStorage фоном
+				saveToLocalStorage(restoredTodos)
+				return restoredTodos
+			})
+		}
 	}
 
 	const onReorder = async (activeId, overId) => {

@@ -7,7 +7,7 @@ export default function AddTodo({ handleAdd }) {
 	const [deadline, setDeadline] = useState('')
 	const [showDeadline, setShowDeadline] = useState(false)
 	const [isListening, setIsListening] = useState(false)
-	const [recognition, setRecognition] = useState(null)
+	// const [recognition, setRecognition] = useState(null)
 	const finalTextRef = useRef('')
 	const inputRef = useRef(null)
 
@@ -21,23 +21,16 @@ export default function AddTodo({ handleAdd }) {
 	}
 
 	const stopListening = () => {
-		if (recognition) {
-			recognition.stop()
-			setIsListening(false)
-			setText(finalTextRef.current)
-			moveCursorToEnd()
-		}
+		setIsListening(false)
+		setText(finalTextRef.current)
+		moveCursorToEnd()
 	}
 
 	const startListening = () => {
-		if (recognition) {
-			if (inputRef.current.value) {
-				finalTextRef.current = ''
-			}
-
-			recognition.start()
-			setIsListening(true)
+		if (inputRef.current.value) {
+			finalTextRef.current = ''
 		}
+		setIsListening(true)
 	}
 
 	const toggleListening = () => {
@@ -49,56 +42,67 @@ export default function AddTodo({ handleAdd }) {
 	}
 
 	useEffect(() => {
-		if (typeof window !== 'undefined') {
-			const SpeechRecognition =
-				window.SpeechRecognition || window.webkitSpeechRecognition
-			if (SpeechRecognition) {
-				const recognitionInstance = new SpeechRecognition()
-				recognitionInstance.continuous = true
-				recognitionInstance.lang = 'ru-RU'
-				recognitionInstance.interimResults = true
+		const SpeechRecognition =
+			window.SpeechRecognition || window.webkitSpeechRecognition
 
-				recognitionInstance.onresult = e => {
-					for (let i = e.resultIndex; i < e.results.length; i++) {
-						let finalTranscript = ''
-						let interimScript = ''
-						const transcript = e.results[i][0].transcript
-						if (e.results[i].isFinal) {
-							finalTranscript += transcript
-						} else {
-							interimScript += transcript
-						}
-
-						if (finalTranscript) {
-							finalTextRef.current =
-								finalTextRef.current + ' ' + finalTranscript
-							setText(finalTextRef.current)
-						} else if (interimScript) {
-							setText(finalTextRef.current + ' ' + interimScript)
-						}
-					}
-					moveCursorToEnd()
-				}
-
-				recognitionInstance.onerror = e => {
-					console.error('Recognize Error:', e.error)
-					stopListening()
-				}
-
-				recognitionInstance.onend = e => {
-					if (isListening) {
-						recognitionInstance.start()
-					}
-				}
-
-				setRecognition(recognitionInstance)
-			}
+		// Если API не поддерживается, выходим и, возможно, скрываем кнопку
+		if (!SpeechRecognition) {
+			console.warn('Speech Recognition API not supported in this browser.')
+			// Можете добавить useState(false) для кнопки микрофона и скрыть ее здесь
+			return
 		}
 
-		return () => {
-			if (recognition) {
-				recognition.stop()
+		const recognitionInstance = new SpeechRecognition()
+		recognitionInstance.continuous = true
+		recognitionInstance.lang = 'ru-RU'
+		recognitionInstance.interimResults = true
+
+		recognitionInstance.onresult = e => {
+			let finalTranscript = ''
+			let interimScript = ''
+
+			for (let i = e.resultIndex; i < e.results.length; i++) {
+				const transcript = e.results[i][0].transcript
+				if (e.results[i].isFinal) {
+					finalTranscript += transcript
+				} else {
+					interimScript += transcript
+				}
 			}
+
+			if (finalTranscript) {
+				// Улучшенная обработка пробелов
+				finalTextRef.current = (
+					finalTextRef.current +
+					' ' +
+					finalTranscript
+				).trim()
+				setText(finalTextRef.current)
+			} else if (interimScript) {
+				// Обновляем UI с промежуточным результатом, сохраняя финальный в ref
+				setText((finalTextRef.current + ' ' + interimScript).trim())
+			}
+			moveCursorToEnd()
+		}
+
+		recognitionInstance.onerror = e => {
+			console.error('Recognize Error:', e.error)
+			// Если произошла ошибка, убедитесь, что isListening выключено
+			setIsListening(false)
+		}
+
+		// Запускаем или останавливаем инстанс в зависимости от isListening
+		if (isListening) {
+			recognitionInstance.start()
+		} else {
+			// Если isListening false, останавливаем, если он уже запущен
+			// (onend вызовется автоматически, но мы его не перехватываем для перезапуска тут)
+			recognitionInstance.stop()
+		}
+
+		// КОРРЕКТНАЯ ОЧИСТКА ЭФФЕКТА
+		return () => {
+			recognitionInstance.stop()
 		}
 	}, [isListening])
 
@@ -117,7 +121,7 @@ export default function AddTodo({ handleAdd }) {
 
 	return (
 		<form onSubmit={handleSubmit} className='mb-6'>
-			<div className='flex items-center bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100  focus-within:ring-2 focus-within:ring-blue-500'>
+			<div className='flex items-center mb-4 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500'>
 				<input
 					ref={inputRef}
 					value={text}

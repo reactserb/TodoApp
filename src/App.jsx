@@ -26,6 +26,7 @@ export default function App() {
 		deletingId,
 		setDeletingId,
 		onReorder,
+		completedCount,
 	} = useTodoManagement()
 
 	return (
@@ -62,9 +63,7 @@ export default function App() {
 					<DeleteModal
 						onCancel={() => setIsDeletingCompleted(false)}
 						onConfirm={confirmDeleteCompleted}
-						message={`Are you sure you want to delete completed todos (${
-							todos.filter(todo => todo.completed).length
-						})?`}
+						message={`Are you sure you want to delete completed todos (${completedCount})?`}
 					/>
 				)}
 				{hasCompletedTodos && (

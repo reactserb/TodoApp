@@ -8,6 +8,7 @@ const useTodoManagement = () => {
 	const [todos, setTodos] = useState([])
 	const [deletingId, setDeletingId] = useState(null)
 	const [isDeletingCompleted, setIsDeletingCompleted] = useState(false)
+	const [completedCount, setCompletedCount] = useState(0)
 
 	const { saveToLocalStorage, loadFromLocalStorage } = useLocalStorage()
 	const { fetchTodos, updateFetchTodo, removeTodo, createTodo } = useApi()
@@ -43,6 +44,7 @@ const useTodoManagement = () => {
 		updateFetchTodo,
 		updateToggleComplete,
 		setIsDeletingCompleted,
+		setCompletedCount,
 	})
 
 	return {
@@ -52,6 +54,8 @@ const useTodoManagement = () => {
 		setIsDeletingCompleted,
 		deletingId,
 		setDeletingId,
+		completedCount,
+		setCompletedCount,
 		...actions,
 	}
 }
