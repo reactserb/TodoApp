@@ -1,4 +1,5 @@
 import formatDateTime from '../helpers/formatDateTime'
+import splitLongWords from '../helpers/splitLongWords'
 
 export default function TodoTextDisplay({ todo }) {
 	return (
@@ -10,7 +11,7 @@ export default function TodoTextDisplay({ todo }) {
 						: 'text-gray-700 dark:text-gray-300'
 				}`}
 			>
-				{todo.text}
+				{splitLongWords(todo.text, 15)}
 			</span>
 
 			<span className='text-xs break-words text-gray-400'>

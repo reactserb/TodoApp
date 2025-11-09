@@ -32,7 +32,7 @@ export default function App() {
 	return (
 		<div
 			data-theme={theme}
-			className='flex flex-col min-h-screen justify-center items-center bg-page-light dark:bg-page-dark p-6'
+			className='flex flex-col min-h-screen-fix  justify-center items-center bg-page-light dark:bg-page-dark p-6'
 		>
 			<div className='w-full max-w-xl mx-auto flex flex-col items-center'>
 				<Suspense fallback={<Loader />}>

@@ -96,17 +96,19 @@ export default function TodoItem({
 					)}
 				</div>
 			</div>
-			{!isEditing && !todo.completed && (
-				<button
-					ref={editButtonRef}
-					onClick={() => setIsEditing(true)}
-					className='p-2 text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0'
-					title='Edit task'
-				>
-					<FaEdit />
-				</button>
-			)}
-			<DeleteButton onDelete={onDelete} />
+			<div className='flex flex-col items-center gap-2 sm:flex-row'>
+				{!isEditing && !todo.completed && (
+					<button
+						ref={editButtonRef}
+						onClick={() => setIsEditing(true)}
+						className='p-2 text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0'
+						title='Edit task'
+					>
+						<FaEdit />
+					</button>
+				)}
+				<DeleteButton onDelete={onDelete} />
+			</div>
 		</div>
 	)
 }

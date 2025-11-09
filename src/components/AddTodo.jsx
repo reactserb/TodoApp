@@ -9,6 +9,11 @@ export default function AddTodo({ handleAdd }) {
 	const [isListening, setIsListening] = useState(false)
 	const inputRef = useRef(null)
 
+	const isListeningRef = useRef(isListening)
+	useEffect(() => {
+		isListeningRef.current = isListening
+	}, [isListening])
+
 	const moveCursorToEnd = () => {
 		if (inputRef.current) {
 			inputRef.current.focus()
@@ -20,7 +25,6 @@ export default function AddTodo({ handleAdd }) {
 
 	const stopListening = () => {
 		setIsListening(false)
-		setText(inputRef.current.value)
 		moveCursorToEnd()
 	}
 
@@ -49,38 +53,48 @@ export default function AddTodo({ handleAdd }) {
 		}
 
 		const recognitionInstance = new SpeechRecognition()
-		recognitionInstance.continuous = true
+		recognitionInstance.continuous = true // Продолжаем слушать
 		recognitionInstance.lang = 'ru-RU'
 		recognitionInstance.interimResults = true // Нужны промежуточные результаты для плавного ввода
 
 		recognitionInstance.onresult = e => {
-			// !!! ИСПРАВЛЕННАЯ ЛОГИКА ОБРАБОТКИ РЕЗУЛЬТАТОВ !!!
+			let latestTranscript = ''
+			// Получаем последнюю транскрипцию из *последнего* результата
+			// e.results.length - 1 всегда даст вам последний набор результатов в текущем событии
+			const lastResultIndex = e.results.length - 1
+			latestTranscript = e.results[lastResultIndex][0].transcript
 
-			let fullTranscript = ''
-
-			// Проходим по всем результатам от начала до конца
-			for (let i = 0; i < e.results.length; i++) {
-				// Добавляем транскрипт текущего результата к полной строке
-				fullTranscript += e.results[i][0].transcript
-			}
-
-			// Всегда устанавливаем UI в полный транскрипт.
-			// Мы не используем ref для хранения "финального" текста,
-			// потому что на мобильных onresult может содержать все финальные результаты.
-			setText(fullTranscript.trim())
-
+			// Всегда устанавливаем UI в последний полученный транскрипт.
+			// Это предотвращает дублирование текста.
+			setText(latestTranscript.trim())
 			moveCursorToEnd()
 		}
 
 		recognitionInstance.onerror = e => {
 			console.error('Recognize Error:', e.error)
-			setIsListening(false)
+			if (isListeningRef.current) {
+				setIsListening(false)
+			}
 		}
 
-		recognitionInstance.onend = () => {}
+		recognitionInstance.onend = () => {
+			// Если прослушивание остановилось не по нашей команде (например, из-за таймаута),
+			// обновляем состояние.
+			if (isListeningRef.current) {
+				console.log(
+					'Recognition ended unexpectedly. Restarting if needed or updating state.'
+				)
+				setIsListening(false)
+			}
+		}
 
 		if (isListening) {
-			recognitionInstance.start()
+			try {
+				recognitionInstance.start()
+			} catch (err) {
+				console.error('Recognition start error:', err)
+				setIsListening(false)
+			}
 		} else {
 			recognitionInstance.stop()
 		}
@@ -138,7 +152,6 @@ export default function AddTodo({ handleAdd }) {
 					</button>
 				</div>
 			</div>
-
 			<DeadlineBlock
 				showDeadline={showDeadline}
 				deadline={deadline}
@@ -149,7 +162,8 @@ export default function AddTodo({ handleAdd }) {
 				<div className='mt-2 text-sm text-blue-500 flex items-center'>
 					<div className='w-3 h-3 rounded-full bg-red-500 mr-2'></div>
 					<span className='animate-pulse'>
-						Recording in progress... Push the microphone to stop
+						{' '}
+						Recording in progress... Push the microphone to stop{' '}
 					</span>
 				</div>
 			)}

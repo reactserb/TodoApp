@@ -12,3 +12,9 @@
 	--color-page-dark: #323232;
 	--color-page-light: #f3f3f3;
 }
+
+.min-h-screen-fix {
+	min-height: 100vh;
+
+	min-height: calc(var(--vh, 1vh) * 100);
+}
